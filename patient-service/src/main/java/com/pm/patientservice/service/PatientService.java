@@ -8,9 +8,11 @@ import com.pm.patientservice.mapper.PatientMapper;
 import com.pm.patientservice.model.Patient;
 import com.pm.patientservice.repository.PatientRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.DeleteMapping;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -23,6 +25,14 @@ public class PatientService {
 
     public List<PatientResponseDTO> getPatients(){
         List<Patient> patientList = patientRepository.findAll();
+        //  List<PatientResponseDTO> patientResponseDTOS = patientList.stream()
+        //                .map(eachPatient -> PatientMapper.toDto(eachPatient)).toList();
+        return patientList.stream()
+                .map(PatientMapper::toDto).toList();
+    }
+
+    public List<PatientResponseDTO> getPatientsById(UUID id){
+        Optional<Patient> patientList = patientRepository.findById(id);
         //  List<PatientResponseDTO> patientResponseDTOS = patientList.stream()
         //                .map(eachPatient -> PatientMapper.toDto(eachPatient)).toList();
         return patientList.stream()
@@ -42,10 +52,10 @@ public class PatientService {
     public PatientResponseDTO updatePatient(UUID id,PatientRequestDTO patientRequestDTO){
         Patient patientToBeUpdated = patientRepository.findById(id)
                 .orElseThrow(()-> new PatientNotFoundException("Patient not found for id -",id));
-        if(patientRepository.existsByEmail(patientRequestDTO.getEmail())){
+        /*if(patientRepository.existsByEmail(patientRequestDTO.getEmail())){
             throw new EmailAlreadyExistsException("A patient is already associated with the email" +
                     patientRequestDTO.getEmail());
-        }
+        }*/
         patientToBeUpdated.setName(patientRequestDTO.getName());
         patientToBeUpdated.setAddress(patientRequestDTO.getAddress());
         patientToBeUpdated.setEmail(patientRequestDTO.getEmail());
@@ -54,5 +64,9 @@ public class PatientService {
 
         Patient updatedPatient = patientRepository.save(patientToBeUpdated);
         return PatientMapper.toDto(updatedPatient);
+    }
+
+    public void deletePatient(UUID id){
+        patientRepository.deleteById(id);
     }
 }
